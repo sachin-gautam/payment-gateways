@@ -10,7 +10,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB
+var Db *sql.DB
 
 type User struct {
 	ID        int
@@ -53,12 +53,12 @@ func InitializeDB(dataSourceName string) {
 	var err error
 
 	err = services.RetryOperation(func() error {
-		db, err = sql.Open("postgres", dataSourceName)
+		Db, err = sql.Open("postgres", dataSourceName)
 		if err != nil {
 			return err
 		}
 
-		return db.Ping()
+		return Db.Ping()
 	}, 5)
 
 	if err != nil {
@@ -196,7 +196,7 @@ func GetTransactions(db *sql.DB) ([]Transaction, error) {
 	return transactions, nil
 }
 
-func GetSupportedCountriesByGateway(db *sql.DB, gatewayID int) ([]Country, error) {
+func GetSupportedCountriesByGateway(Db *sql.DB, gatewayID int) ([]Country, error) {
 	query := `
 		SELECT c.id AS country_id, c.name AS country_name
 		FROM countries c
@@ -205,7 +205,7 @@ func GetSupportedCountriesByGateway(db *sql.DB, gatewayID int) ([]Country, error
 		ORDER BY c.name
 	`
 
-	rows, err := db.Query(query, gatewayID)
+	rows, err := Db.Query(query, gatewayID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch countries for gateway %d: %v", gatewayID, err)
 	}
@@ -225,4 +225,17 @@ func GetSupportedCountriesByGateway(db *sql.DB, gatewayID int) ([]Country, error
 	}
 
 	return countries, nil
+}
+
+func GetUserByID(userID int) (User, error) {
+	var user User
+	query := `SELECT id, username, email, country_id, created_at, updated_at FROM users WHERE id = $1`
+	err := Db.QueryRow(query, userID).Scan(&user.ID, &user.Username, &user.Email, &user.CountryID, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return User{}, fmt.Errorf("user with ID %d not found", userID)
+		}
+		return User{}, fmt.Errorf("error fetching user: %v", err)
+	}
+	return user, nil
 }
