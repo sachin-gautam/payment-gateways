@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"payment-gateway/internal/services"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -49,23 +48,21 @@ type Transaction struct {
 }
 
 // InitializeDB initializes the database connection
-func InitializeDB(dataSourceName string) {
+func InitializeDB(dataSourceName string) error {
 	var err error
-
-	err = services.RetryOperation(func() error {
-		Db, err = sql.Open("postgres", dataSourceName)
-		if err != nil {
-			return err
-		}
-
-		return Db.Ping()
-	}, 5)
-
+	Db, err = sql.Open("postgres", dataSourceName)
 	if err != nil {
-		log.Fatalf("Could not connect to the database: %v", err)
+		return fmt.Errorf("could not open the database connection: %v", err)
+	}
+
+	// Attempt to ping the database to ensure the connection is valid
+	err = Db.Ping()
+	if err != nil {
+		return fmt.Errorf("could not ping the database: %v", err)
 	}
 
 	log.Println("Successfully connected to the database.")
+	return nil
 }
 
 func CreateUser(db *sql.DB, user User) error {
@@ -98,6 +95,24 @@ func GetUsers(db *sql.DB) ([]User, error) {
 		return nil, err
 	}
 	return users, nil
+}
+
+// GetUserByID retrieves a user from the database by their ID
+func GetUserByID(db *sql.DB, userID int) (User, error) {
+	var user User
+
+	query := `SELECT id, username, email, country_id, created_at, updated_at 
+			  FROM users WHERE id = $1`
+
+	err := db.QueryRow(query, userID).Scan(&user.ID, &user.Username, &user.Email, &user.CountryID, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return User{}, fmt.Errorf("no user found with id %d", userID)
+		}
+		return User{}, fmt.Errorf("failed to fetch user: %v", err)
+	}
+
+	return user, nil
 }
 
 func CreateGateway(db *sql.DB, gateway Gateway) error {
@@ -227,15 +242,8 @@ func GetSupportedCountriesByGateway(Db *sql.DB, gatewayID int) ([]Country, error
 	return countries, nil
 }
 
-func GetUserByID(userID int) (User, error) {
-	var user User
-	query := `SELECT id, username, email, country_id, created_at, updated_at FROM users WHERE id = $1`
-	err := Db.QueryRow(query, userID).Scan(&user.ID, &user.Username, &user.Email, &user.CountryID, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return User{}, fmt.Errorf("user with ID %d not found", userID)
-		}
-		return User{}, fmt.Errorf("error fetching user: %v", err)
-	}
-	return user, nil
+func UpdateTransactionStatus(db *sql.DB, transactionID int, status string) error {
+	query := `UPDATE transactions SET status = $1 WHERE id = $2`
+	_, err := db.Exec(query, status, transactionID)
+	return err
 }
