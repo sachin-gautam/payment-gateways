@@ -17,11 +17,12 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Failed to decode request: %v", err)
 		services.EncodeResponse(w, r, models.APIResponse{
 			StatusCode: http.StatusBadRequest,
-			Message:    fmt.Sprintf("Failed to decode request: %v", err)})
+			Message: fmt.Sprintf("Failed to decode request: %v",
+				err)})
 		return
 	}
 
-	log.Printf("Deposit request received: %+v", transactionRequest)
+	log.Printf("Deposit request received from user_id %+v", transactionRequest.UserID)
 
 	userID := transactionRequest.UserID
 	amount := transactionRequest.Amount
@@ -29,14 +30,20 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := db.GetUserByID(db.Db, userID)
 	if err != nil {
 		log.Printf("Error fetching user: %v", err)
-		services.EncodeResponse(w, r, models.APIResponse{StatusCode: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching user: %v", err)})
+		services.EncodeResponse(w, r, models.APIResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message: fmt.Sprintf("Error fetching user: %v",
+				err)})
 		return
 	}
 
 	gateways, err := db.GetSupportedCountriesByGateway(db.Db, user.CountryID)
 	if err != nil {
 		log.Printf("Error fetching supported gateways: %v", err)
-		services.EncodeResponse(w, r, models.APIResponse{StatusCode: http.StatusInternalServerError, Message: fmt.Sprintf("Error fetching supported gateways: %v", err)})
+		services.EncodeResponse(w, r, models.APIResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message: fmt.Sprintf("Error fetching supported gateways: %v",
+				err)})
 		return
 	}
 
@@ -55,10 +62,12 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store transaction in database
-	err = db.CreateTransaction(db.Db, transaction)
+	err = db.CreateTransaction(db.Db, &transaction)
 	if err != nil {
 		log.Printf("Error processing transaction: %v", err)
-		services.EncodeResponse(w, r, models.APIResponse{StatusCode: http.StatusInternalServerError, Message: fmt.Sprintf("Error processing transaction: %v", err)})
+		services.EncodeResponse(w, r, models.APIResponse{
+			StatusCode: http.StatusInternalServerError,
+			Message:    fmt.Sprintf("Error processing transaction: %v", err)})
 		return
 	}
 
@@ -89,9 +98,10 @@ func WithdrawalHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Withdrawal request received: %+v", transactionRequest)
+	log.Printf("Withdrawal request received from user_id: %+v", transactionRequest.UserID)
 
 	// Assuming user ID and amount are part of the request
+
 	userID := transactionRequest.UserID
 	amount := transactionRequest.Amount
 
@@ -126,7 +136,7 @@ func WithdrawalHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Store transaction in database
-	err = db.CreateTransaction(db.Db, transaction)
+	err = db.CreateTransaction(db.Db, &transaction)
 	if err != nil {
 		log.Printf("Error processing transaction: %v", err)
 		services.EncodeResponse(w, r, models.APIResponse{StatusCode: http.StatusInternalServerError, Message: fmt.Sprintf("Error processing transaction: %v", err)})
@@ -156,17 +166,17 @@ func HandleGatewayCallback(w http.ResponseWriter, r *http.Request) {
 	err := services.DecodeRequest(r, &callbackData)
 	if err != nil {
 		log.Printf("Failed to decode callback: %v", err)
-		services.EncodeResponse(w, r, models.APIResponse{StatusCode: http.StatusBadRequest, Message: fmt.Sprintf("Failed to decode callback: %v", err)})
+		services.EncodeResponse(w, r, models.APIResponse{
+			StatusCode: http.StatusBadRequest,
+			Message:    fmt.Sprintf("Failed to decode callback: %v", err)})
 		return
 	}
 
 	log.Printf("Callback received: %+v", callbackData)
 
-	// Get the transaction ID and status from the callback
 	transactionID := callbackData.Id
 	transactionStatus := callbackData.Status
 
-	// Update the transaction status in the database asynchronously
 	go func() {
 		err := db.UpdateTransactionStatus(db.Db, transactionID, transactionStatus)
 		if err != nil {

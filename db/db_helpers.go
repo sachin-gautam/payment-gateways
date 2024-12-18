@@ -179,7 +179,7 @@ func GetCountries(db *sql.DB) ([]Country, error) {
 	return countries, nil
 }
 
-func CreateTransaction(db *sql.DB, transaction Transaction) error {
+func CreateTransaction(db *sql.DB, transaction *Transaction) error {
 	query := `INSERT INTO transactions (amount, type, status, gateway_id, country_id, user_id, created_at) 
 			  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
 

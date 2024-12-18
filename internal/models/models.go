@@ -2,6 +2,10 @@ package models
 
 // a standard request structure for the transactions
 type TransactionRequest struct {
+	Id     int     `json:"id" xml:"id"`
+	Status string  `json:"status" xml:"status"`
+	UserID int     `json:"user_id" xml:"user_id"`
+	Amount float64 `json:"amount" xml:"amount"`
 }
 
 // a standard response structure for the APIs
