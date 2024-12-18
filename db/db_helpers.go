@@ -40,7 +40,7 @@ type Country struct {
 
 type Transaction struct {
 	ID        int
-	Amount    float64
+	Amount    string
 	Type      string
 	Status    string
 	UserID    int
@@ -88,7 +88,12 @@ func GetUsers(db *sql.DB) ([]User, error) {
 	var users []User
 	for rows.Next() {
 		var user User
-		if err := rows.Scan(&user.ID, &user.Username, &user.Email, &user.CountryID, &user.CreatedAt, &user.UpdatedAt); err != nil {
+		if err := rows.Scan(&user.ID,
+			&user.Username,
+			&user.Email,
+			&user.CountryID,
+			&user.CreatedAt,
+			&user.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan user: %v", err)
 		}
 		users = append(users, user)
@@ -99,7 +104,6 @@ func GetUsers(db *sql.DB) ([]User, error) {
 	return users, nil
 }
 
-// GetUserByID retrieves a user from the database by their ID
 func GetUserByID(db *sql.DB, userID int) (User, error) {
 	var user User
 
@@ -138,7 +142,11 @@ func GetGateways(db *sql.DB) ([]Gateway, error) {
 	var gateways []Gateway
 	for rows.Next() {
 		var gateway Gateway
-		if err := rows.Scan(&gateway.ID, &gateway.Name, &gateway.DataFormatSupported, &gateway.CreatedAt, &gateway.UpdatedAt); err != nil {
+		if err := rows.Scan(&gateway.ID,
+			&gateway.Name,
+			&gateway.DataFormatSupported,
+			&gateway.CreatedAt,
+			&gateway.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan gateway: %v", err)
 		}
 		gateways = append(gateways, gateway)
@@ -170,7 +178,11 @@ func GetCountries(db *sql.DB) ([]Country, error) {
 	var countries []Country
 	for rows.Next() {
 		var country Country
-		if err := rows.Scan(&country.ID, &country.Name, &country.Code, &country.CreatedAt, &country.UpdatedAt); err != nil {
+		if err := rows.Scan(&country.ID,
+			&country.Name,
+			&country.Code,
+			&country.CreatedAt,
+			&country.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan country: %v", err)
 		}
 		countries = append(countries, country)
@@ -185,7 +197,14 @@ func CreateTransaction(db *sql.DB, transaction *Transaction) error {
 	query := `INSERT INTO transactions (amount, type, status, gateway_id, country_id, user_id, created_at) 
 			  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`
 
-	err := db.QueryRow(query, transaction.Amount, transaction.Type, transaction.Status, transaction.GatewayID, transaction.CountryID, transaction.UserID, time.Now()).Scan(&transaction.ID)
+	err := db.QueryRow(query,
+		transaction.Amount,
+		transaction.Type,
+		transaction.Status,
+		transaction.GatewayID,
+		transaction.CountryID,
+		transaction.UserID,
+		time.Now()).Scan(&transaction.ID)
 	if err != nil {
 		return fmt.Errorf("failed to insert transaction: %v", err)
 	}
@@ -202,7 +221,14 @@ func GetTransactions(db *sql.DB) ([]Transaction, error) {
 	var transactions []Transaction
 	for rows.Next() {
 		var transaction Transaction
-		if err := rows.Scan(&transaction.ID, &transaction.Amount, &transaction.Type, &transaction.Status, &transaction.UserID, &transaction.GatewayID, &transaction.CountryID, &transaction.CreatedAt); err != nil {
+		if err := rows.Scan(&transaction.ID,
+			&transaction.Amount,
+			&transaction.Type,
+			&transaction.Status,
+			&transaction.UserID,
+			&transaction.GatewayID,
+			&transaction.CountryID,
+			&transaction.CreatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan transaction: %v", err)
 		}
 		transactions = append(transactions, transaction)
