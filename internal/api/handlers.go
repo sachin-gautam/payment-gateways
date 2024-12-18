@@ -37,18 +37,11 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gateways, err := db.GetSupportedCountriesByGateway(db.Db, user.CountryID)
-	if err != nil {
-		log.Printf("Error fetching supported gateways: %v", err)
-		services.EncodeResponse(w, r, models.APIResponse{
-			StatusCode: http.StatusInternalServerError,
-			Message: fmt.Sprintf("Error fetching supported gateways: %v",
-				err)})
+	gateways, err := db.GetAvailableGateways(db.Db, user.CountryID)
+	if err != nil || len(gateways) == 0 {
+		http.Error(w, "No available gateways", http.StatusInternalServerError)
 		return
 	}
-
-	// Choose the first gateway or implement logic for prioritization
-	selectedGateway := gateways[0]
 
 	// Initiate the deposit transaction
 	transaction := db.Transaction{
@@ -56,7 +49,7 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 		Type:      "deposit",
 		Status:    "pending",
 		UserID:    userID,
-		GatewayID: selectedGateway.ID,
+		GatewayID: gateways[0].ID,
 		CountryID: user.CountryID,
 		CreatedAt: time.Now(),
 	}
@@ -73,8 +66,6 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Transaction created: %+v", transaction)
 
-	// Simulate the transaction via the selected gateway (mock or real)
-	// Mock call to gateway service (asynchronously)
 	go services.ProcessTransactionAsync(transaction)
 
 	// Return response

@@ -26,6 +26,8 @@ type Gateway struct {
 	DataFormatSupported string
 	CreatedAt           time.Time
 	UpdatedAt           time.Time
+	Priority            int
+	Status              string
 }
 
 type Country struct {
@@ -240,6 +242,36 @@ func GetSupportedCountriesByGateway(Db *sql.DB, gatewayID int) ([]Country, error
 	}
 
 	return countries, nil
+}
+
+func GetAvailableGateways(db *sql.DB, countryID int) ([]Gateway, error) {
+	query := `
+		SELECT g.id, g.name, g.data_format_supported, g.priority
+		FROM gateways g
+		JOIN gateway_countries gc ON g.id = gc.gateway_id
+		WHERE gc.country_id = $1 AND g.status = 'active'
+		ORDER BY g.priority ASC
+	`
+	rows, err := db.Query(query, countryID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch gateways: %v", err)
+	}
+	defer rows.Close()
+
+	var gateways []Gateway
+	for rows.Next() {
+		var gateway Gateway
+		if err := rows.Scan(&gateway.ID, &gateway.Name, &gateway.DataFormatSupported, &gateway.Priority); err != nil {
+			return nil, fmt.Errorf("failed to scan gateway: %v", err)
+		}
+		gateways = append(gateways, gateway)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error scanning rows: %v", err)
+	}
+
+	return gateways, nil
 }
 
 func UpdateTransactionStatus(db *sql.DB, transactionID int, status string) error {
