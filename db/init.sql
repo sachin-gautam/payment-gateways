@@ -6,7 +6,9 @@ BEGIN
             name VARCHAR(255) NOT NULL UNIQUE,
             data_format_supported VARCHAR(50) NOT NULL,  
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP  
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            priority NUMERIC
+            status VARCHAR(20)
         );
     END IF;
 END $$;
@@ -41,7 +43,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'transactions') THEN
         CREATE TABLE transactions (
             id SERIAL PRIMARY KEY,
-            amount DECIMAL(10, 2) NOT NULL,
+            amount TEXT NOT NULL,
             type VARCHAR(50) NOT NULL,
             status VARCHAR(50) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  
