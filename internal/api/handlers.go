@@ -10,6 +10,17 @@ import (
 	"time"
 )
 
+// DepositHandler handles deposit requests from users
+// @Summary Deposit money into the system
+// @Description Handle deposit requests and create a transaction for the deposit
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param transactionRequest body models.TransactionRequest true "Deposit Request"
+// @Success 200 {object} models.APIResponse{data=db.Transaction} "Deposit initiated successfully"
+// @Failure 400 {object} models.APIResponse "Failed to decode request"
+// @Failure 500 {object} models.APIResponse "Internal Server Error"
+// @Router /deposit [post]
 func DepositHandler(w http.ResponseWriter, r *http.Request) {
 	var transactionRequest models.TransactionRequest
 	err := services.DecodeRequest(r, &transactionRequest)
@@ -81,6 +92,17 @@ func DepositHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// WithdrawalHandler handles withdrawal requests from users
+// @Summary Withdraw money from the system
+// @Description Handle withdrawal requests and create a transaction for the withdrawal
+// @Tags transactions
+// @Accept json
+// @Produce json
+// @Param transactionRequest body models.TransactionRequest true "Withdrawal Request"
+// @Success 200 {object} models.APIResponse{data=db.Transaction} "Withdrawal initiated successfully"
+// @Failure 400 {object} models.APIResponse "Failed to decode request"
+// @Failure 500 {object} models.APIResponse "Internal Server Error"
+// @Router /withdrawal [post]
 func WithdrawalHandler(w http.ResponseWriter, r *http.Request) {
 	var transactionRequest models.TransactionRequest
 	err := services.DecodeRequest(r, &transactionRequest)

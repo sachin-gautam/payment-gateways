@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -5,10 +6,15 @@ import (
 	"net/http"
 	"os"
 	"payment-gateway/db"
+	_ "payment-gateway/docs"
 	"payment-gateway/internal/api"
 	"payment-gateway/internal/services"
 )
 
+// @title           Payment Gateway API
+// @version         1.0
+// @description     A simple payment gateway API with deposit and withdrawal endpoints
+// @host      localhost:8080
 func main() {
 
 	dbUser := os.Getenv("DB_USER")

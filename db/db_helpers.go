@@ -11,6 +11,8 @@ import (
 
 var Db *sql.DB
 
+// User represents a user in the system
+// @Description Represents a user entity in the system
 type User struct {
 	ID        int
 	Username  string
@@ -20,6 +22,8 @@ type User struct {
 	UpdatedAt time.Time
 }
 
+// Gateway represents a payment gateway in the system
+// @Description Represents a payment gateway entity in the system
 type Gateway struct {
 	ID                  int
 	Name                string
@@ -30,6 +34,8 @@ type Gateway struct {
 	Status              string
 }
 
+// Country represents a country in the system
+// @Description Represents a country entity in the system
 type Country struct {
 	ID        int
 	Name      string
@@ -38,6 +44,8 @@ type Country struct {
 	UpdatedAt time.Time
 }
 
+// Transaction represents a financial transaction
+// @Description Represents a transaction entity in the system
 type Transaction struct {
 	ID        int
 	Amount    string
@@ -49,7 +57,6 @@ type Transaction struct {
 	CreatedAt time.Time
 }
 
-// InitializeDB initializes the database connection
 func InitializeDB(dataSourceName string) error {
 	var err error
 	Db, err = sql.Open("postgres", dataSourceName)
@@ -57,7 +64,6 @@ func InitializeDB(dataSourceName string) error {
 		return fmt.Errorf("could not open the database connection: %v", err)
 	}
 
-	// Attempt to ping the database to ensure the connection is valid
 	err = Db.Ping()
 	if err != nil {
 		return fmt.Errorf("could not ping the database: %v", err)

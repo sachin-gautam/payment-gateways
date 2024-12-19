@@ -1,0 +1,118 @@
+definitions:
+  db.Transaction:
+    description: Represents a transaction entity in the system
+    properties:
+      amount:
+        type: string
+      countryID:
+        type: integer
+      createdAt:
+        type: string
+      gatewayID:
+        type: integer
+      id:
+        type: integer
+      status:
+        type: string
+      type:
+        type: string
+      userID:
+        type: integer
+    type: object
+  models.APIResponse:
+    description: Represents the response payload returned after processing a transaction
+      request
+    properties:
+      data: {}
+      message:
+        type: string
+      status_code:
+        type: integer
+    type: object
+  models.TransactionRequest:
+    description: Represents the request payload for initiating a transaction (either
+      deposit or withdrawal)
+    properties:
+      amount:
+        type: number
+      user_id:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: A simple payment gateway API with deposit and withdrawal endpoints
+  title: Payment Gateway API
+  version: "1.0"
+paths:
+  /deposit:
+    post:
+      consumes:
+      - application/json
+      description: Handle deposit requests and create a transaction for the deposit
+      parameters:
+      - description: Deposit Request
+        in: body
+        name: transactionRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.TransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Deposit initiated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/db.Transaction'
+              type: object
+        "400":
+          description: Failed to decode request
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      summary: Deposit money into the system
+      tags:
+      - transactions
+  /withdrawal:
+    post:
+      consumes:
+      - application/json
+      description: Handle withdrawal requests and create a transaction for the withdrawal
+      parameters:
+      - description: Withdrawal Request
+        in: body
+        name: transactionRequest
+        required: true
+        schema:
+          $ref: '#/definitions/models.TransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Withdrawal initiated successfully
+          schema:
+            allOf:
+            - $ref: '#/definitions/models.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/db.Transaction'
+              type: object
+        "400":
+          description: Failed to decode request
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.APIResponse'
+      summary: Withdraw money from the system
+      tags:
+      - transactions
+swagger: "2.0"
